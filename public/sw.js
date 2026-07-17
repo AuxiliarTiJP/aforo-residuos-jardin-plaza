@@ -1,4 +1,4 @@
-const CACHE_NAME = "jp-aforo-shell-v2";
+const CACHE_NAME = "jp-aforo-shell-v3";
 const STATIC_ASSETS = [
   "/manifest.webmanifest",
   "/logo-jardin-plaza.png",
