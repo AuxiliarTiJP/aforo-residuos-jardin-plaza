@@ -3,7 +3,7 @@
   "version": "4.0.0",
   "private": true,
   "engines": {
-    "node": "20.x"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "next dev",
@@ -28,5 +28,6 @@
     "eslint": "^9.39.1",
     "eslint-config-next": "16.2.10",
     "typescript": "^5.9.3"
-  }
+  },
+  "packageManager": "pnpm@10.10.0"
 }
