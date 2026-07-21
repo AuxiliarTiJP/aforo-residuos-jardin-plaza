@@ -109,6 +109,7 @@ export function OperatorApp() {
   const [closedPhoto, setClosedPhoto] = useState<File | null>(null);
   const [closedObservations, setClosedObservations] = useState("");
   const syncLock = useRef(false);
+  const syncNowRef = useRef<() => Promise<void>>(async () => undefined);
 
   const completedMap = useMemo(
     () => new Map(progress.map((item) => [item.brandId, item.result])),
@@ -210,11 +211,20 @@ export function OperatorApp() {
     }
   }, [configured, loadBrands]);
 
+  const applyLoadedRoute = useCallback((valid: RouteRun | null) => {
+    setRoute((current) => {
+      if (current?.id === valid?.id && current?.status === valid?.status) return current;
+      return valid;
+    });
+    setScreen((current) => {
+      if (current !== "route" && current !== "scan") return current;
+      return valid ? "scan" : "route";
+    });
+  }, []);
+
   const loadRoute = useCallback(async () => {
     if (!configured || !supabase) {
-      const next = demoRoute(visitDate);
-      setRoute(next);
-      setScreen("scan");
+      applyLoadedRoute(demoRoute(visitDate));
       return;
     }
 
@@ -223,15 +233,13 @@ export function OperatorApp() {
         ? await getActiveRoute(supabase, visitDate)
         : await readCachedActiveRoute();
       const valid = active?.visitDate === visitDate ? active : null;
-      setRoute(valid);
-      setScreen(valid ? "scan" : "route");
+      applyLoadedRoute(valid);
     } catch {
       const cached = await readCachedActiveRoute().catch(() => null);
       const valid = cached?.visitDate === visitDate ? cached : null;
-      setRoute(valid);
-      setScreen(valid ? "scan" : "route");
+      applyLoadedRoute(valid);
     }
-  }, [configured, visitDate]);
+  }, [applyLoadedRoute, configured, visitDate]);
 
   const handleLogout = useCallback(async () => {
     if (configured && user) {
@@ -249,13 +257,17 @@ export function OperatorApp() {
   }, [configured, logout, pendingCount, syncNow, user]);
 
   useEffect(() => {
+    syncNowRef.current = syncNow;
+  }, [syncNow]);
+
+  useEffect(() => {
     const initializeTimer = window.setTimeout(() => {
       void loadBrands();
       void loadRoute();
       void refreshPendingCount();
       if (navigator.onLine) {
         void updateBrandCache();
-        void syncNow();
+        void syncNowRef.current();
       }
     }, 0);
 
@@ -265,7 +277,7 @@ export function OperatorApp() {
       setOnline(true);
       void updateBrandCache();
       void loadRoute();
-      void syncNow();
+      void syncNowRef.current();
     };
     const handleOffline = () => setOnline(false);
 
@@ -276,12 +288,18 @@ export function OperatorApp() {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, [loadBrands, loadRoute, refreshPendingCount, syncNow, updateBrandCache]);
+  }, [loadBrands, loadRoute, refreshPendingCount, updateBrandCache]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => void refreshProgress(), 0);
     return () => window.clearTimeout(timer);
   }, [refreshProgress]);
+
+  useEffect(() => {
+    if (screen !== "closed" && screen !== "progress") return;
+    const timer = window.setTimeout(() => void refreshProgress(), 0);
+    return () => window.clearTimeout(timer);
+  }, [refreshProgress, screen]);
 
   useEffect(() => {
     if (!route || !online) return;
@@ -778,10 +796,7 @@ export function OperatorApp() {
         <div className="progress-track"><span style={{ width: `${progressPercent}%` }} /></div>
         <button
           type="button"
-          onClick={() => {
-            setScreen("progress");
-            void refreshProgress();
-          }}
+          onClick={() => setScreen("progress")}
         >
           <ListChecks size={18} /> Ver marcas
         </button>
@@ -800,10 +815,7 @@ export function OperatorApp() {
       <button
         className="closed-report-entry"
         type="button"
-        onClick={() => {
-          setScreen("closed");
-          void refreshProgress();
-        }}
+        onClick={() => setScreen("closed")}
       >
         <DoorClosed size={21} />
         <span><strong>Reportar local cerrado</strong><small>Selecciona la tienda, toma una foto y registra observaciones.</small></span>
