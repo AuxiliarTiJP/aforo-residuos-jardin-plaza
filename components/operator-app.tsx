@@ -248,7 +248,7 @@ export function OperatorApp() {
       if (remaining > 0) {
         window.alert(
           `Hay ${remaining} ${remaining === 1 ? "registro pendiente" : "registros pendientes"}. ` +
-          "La sesiÃ³n permanecerÃ¡ abierta para enviarlos cuando regrese la conexiÃ³n.",
+          "La sesión permanecerá abierta para enviarlos cuando regrese la conexión.",
         );
         return;
       }
@@ -357,17 +357,17 @@ export function OperatorApp() {
         if (!found) {
           setMessage(
             navigator.onLine
-              ? "Este cÃ³digo QR no corresponde a una marca activa."
+              ? "Este código QR no corresponde a una marca activa."
               : brandCacheReady
-                ? "Este cÃ³digo QR no se encuentra en las marcas guardadas en el dispositivo."
-                : "ConÃ©ctate una vez para descargar las marcas antes de realizar recorridos sin seÃ±al.",
+                ? "Este código QR no se encuentra en las marcas guardadas en el dispositivo."
+                : "Conéctate una vez para descargar las marcas antes de realizar recorridos sin señal.",
           );
           setScreen("error");
           return;
         }
 
         if (completedMap.has(found.id)) {
-          setMessage("Esta marca ya fue gestionada en el recorrido actual. PodrÃ¡ registrarse nuevamente cuando se inicie el siguiente recorrido.");
+          setMessage("Esta marca ya fue gestionada en el recorrido actual. Podrá registrarse nuevamente cuando se inicie el siguiente recorrido.");
           setScreen("error");
           return;
         }
@@ -377,8 +377,8 @@ export function OperatorApp() {
       } catch {
         setMessage(
           navigator.onLine
-            ? "No fue posible consultar la marca. IntÃ©ntalo nuevamente."
-            : "No hay conexiÃ³n y la marca todavÃ­a no estÃ¡ guardada en este dispositivo.",
+            ? "No fue posible consultar la marca. Inténtalo nuevamente."
+            : "No hay conexión y la marca todavía no está guardada en este dispositivo.",
         );
         setScreen("error");
       }
@@ -395,7 +395,7 @@ export function OperatorApp() {
   async function startRoute() {
     if (!user) return;
     if (configured && !navigator.onLine) {
-      setMessage("Necesitas conexiÃ³n para iniciar un nuevo recorrido. Una vez iniciado podrÃ¡s continuar sin seÃ±al.");
+      setMessage("Necesitas conexión para iniciar un nuevo recorrido. Una vez iniciado podrás continuar sin señal.");
       setScreen("error");
       return;
     }
@@ -447,7 +447,7 @@ export function OperatorApp() {
         if (navigator.onLine) void syncNow();
       }
 
-      setSuccessText("RecolecciÃ³n registrada");
+      setSuccessText("Recolección registrada");
       setScreen("success");
       window.setTimeout(() => {
         setBrand(null);
@@ -472,7 +472,7 @@ export function OperatorApp() {
       return;
     }
     if (!closedPhoto) {
-      setMessage("Debes tomar una fotografÃ­a del local cerrado.");
+      setMessage("Debes tomar una fotografía del local cerrado.");
       setScreen("error");
       return;
     }
@@ -524,11 +524,11 @@ export function OperatorApp() {
   async function finishCurrentRoute() {
     if (!route || !user) return;
     if (pendingBrands.length > 0) {
-      window.alert(`AÃºn faltan ${pendingBrands.length} marcas por gestionar.`);
+      window.alert(`Aún faltan ${pendingBrands.length} marcas por gestionar.`);
       return;
     }
     if (configured && !navigator.onLine) {
-      window.alert("ConÃ©ctate para finalizar el recorrido y abrir el siguiente.");
+      window.alert("Conéctate para finalizar el recorrido y abrir el siguiente.");
       return;
     }
 
@@ -554,19 +554,19 @@ export function OperatorApp() {
       <main className="operator-page route-start-page">
         <header className="operator-header compact-header">
           <BrandLogo compact />
-          <button className="header-icon" onClick={() => void handleLogout()} aria-label="Cerrar sesiÃ³n">
+          <button className="header-icon" onClick={() => void handleLogout()} aria-label="Cerrar sesión">
             <LogOut size={21} />
           </button>
         </header>
         <section className="route-start-content">
           <div className="route-start-icon"><Play size={34} /></div>
           <h1>Iniciar recorrido</h1>
-          <p>Se abrirÃ¡ el siguiente recorrido del dÃ­a. Todos los registros quedarÃ¡n asociados a este recorrido.</p>
+          <p>Se abrirá el siguiente recorrido del día. Todos los registros quedarán asociados a este recorrido.</p>
           <button className="primary-button" disabled={saving} onClick={() => void startRoute()}>
             {saving ? <LoaderCircle className="spinner" size={20} /> : <Play size={20} />}
             Iniciar recorrido
           </button>
-          {!online ? <span className="route-warning">Necesitas conexiÃ³n Ãºnicamente para iniciar un recorrido nuevo.</span> : null}
+          {!online ? <span className="route-warning">Necesitas conexión únicamente para iniciar un recorrido nuevo.</span> : null}
         </section>
       </main>
     );
@@ -580,7 +580,7 @@ export function OperatorApp() {
             <ArrowLeft size={21} />
           </button>
           <BrandLogo compact />
-          <button className="header-icon" onClick={() => void handleLogout()} aria-label="Cerrar sesiÃ³n">
+          <button className="header-icon" onClick={() => void handleLogout()} aria-label="Cerrar sesión">
             <LogOut size={21} />
           </button>
         </header>
@@ -589,7 +589,7 @@ export function OperatorApp() {
             <span className="step-icon"><ScanLine size={21} /></span>
             <div>
               <p>QR validado</p>
-              <h1>Confirmar recolecciÃ³n</h1>
+              <h1>Confirmar recolección</h1>
             </div>
           </div>
           <article className="brand-result-card">
@@ -653,7 +653,7 @@ export function OperatorApp() {
             </div>
           )}
 
-          <label className="field-label">FotografÃ­a obligatoria</label>
+          <label className="field-label">Fotografía obligatoria</label>
           <label className={`photo-capture ${closedPhotoPreview ? "has-photo" : ""}`}>
             <input
               type="file"
@@ -665,7 +665,7 @@ export function OperatorApp() {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={closedPhotoPreview} alt="Evidencia del local cerrado" />
             ) : (
-              <><Camera size={31} /><strong>Tomar fotografÃ­a</strong><span>La imagen se guardarÃ¡ tambiÃ©n sin conexiÃ³n.</span></>
+              <><Camera size={31} /><strong>Tomar fotografía</strong><span>La imagen se guardará también sin conexión.</span></>
             )}
           </label>
 
@@ -743,8 +743,8 @@ export function OperatorApp() {
         <h1>{successText}</h1>
         <p>
           {savedOffline
-            ? "QuedÃ³ protegido en el dispositivo y se enviarÃ¡ automÃ¡ticamente cuando regrese la conexiÃ³n."
-            : "El registro quedÃ³ protegido localmente y la aplicaciÃ³n estÃ¡ verificando su sincronizaciÃ³n."}
+            ? "Quedó protegido en el dispositivo y se enviará automáticamente cuando regrese la conexión."
+            : "El registro quedó protegido localmente y la aplicación está verificando su sincronización."}
         </p>
       </main>
     );
@@ -764,14 +764,14 @@ export function OperatorApp() {
   const syncLabel = !online
     ? brandCacheReady
       ? `${pendingCount} ${pendingCount === 1 ? "registro pendiente" : "registros pendientes"}`
-      : "ConÃ©ctate una vez para preparar las marcas"
+      : "Conéctate una vez para preparar las marcas"
     : !brandCacheReady
-      ? "Descargando marcas para uso sin conexiÃ³n"
+      ? "Descargando marcas para uso sin conexión"
       : syncing
         ? "Sincronizando registros"
         : pendingCount > 0
           ? `${pendingCount} ${pendingCount === 1 ? "registro por enviar" : "registros por enviar"}`
-          : "InformaciÃ³n sincronizada";
+          : "Información sincronizada";
 
   return (
     <main className="operator-page scan-page">
@@ -781,7 +781,7 @@ export function OperatorApp() {
           <span>Recorrido {route.routeNumber}</span>
           <strong>{user?.fullName}</strong>
         </div>
-        <button className="header-icon" onClick={() => void handleLogout()} aria-label="Cerrar sesiÃ³n">
+        <button className="header-icon" onClick={() => void handleLogout()} aria-label="Cerrar sesión">
           <LogOut size={21} />
         </button>
       </header>
@@ -798,11 +798,11 @@ export function OperatorApp() {
       </section>
 
       <section className="scan-copy">
-        <h1>Escanear cÃ³digo QR</h1>
-        <p>Apunta la cÃ¡mara al cÃ³digo ubicado en la marca.</p>
+        <h1>Escanear código QR</h1>
+        <p>Apunta la cámara al código ubicado en la marca.</p>
       </section>
       {testCode ? (
-        <div className="camera-stage"><div className="camera-status"><ScanLine size={30} /><span>Procesando cÃ³digo QR...</span></div></div>
+        <div className="camera-stage"><div className="camera-status"><ScanLine size={30} /><span>Procesando código QR...</span></div></div>
       ) : (
         <QrCamera onScan={handleScan} />
       )}
@@ -820,8 +820,8 @@ export function OperatorApp() {
         <section className={`sync-strip ${online ? "online" : "offline"}`} aria-live="polite">
           <span className="sync-icon">{online ? <CloudUpload size={20} /> : <CloudOff size={20} />}</span>
           <div>
-            <strong>{online ? "Con conexiÃ³n" : "Modo sin conexiÃ³n"}</strong>
-            <span>{offlineAccess ? "SesiÃ³n local activa Â· " : ""}{syncLabel}</span>
+            <strong>{online ? "Con conexión" : "Modo sin conexión"}</strong>
+            <span>{offlineAccess ? "Sesión local activa · " : ""}{syncLabel}</span>
           </div>
           {online && pendingCount > 0 ? (
             <button type="button" onClick={() => void syncNow()} disabled={syncing}>
@@ -833,7 +833,7 @@ export function OperatorApp() {
       ) : null}
       <footer className="scan-footer">
         <span><ClipboardList size={20} /> Recorrido {route.routeNumber}</span>
-        <button type="button" onClick={() => alert("Escanea el QR para registrar una recolecciÃ³n. Usa Reportar local cerrado cuando no sea posible acceder al QR.")}>
+        <button type="button" onClick={() => alert("Escanea el QR para registrar una recolección. Usa Reportar local cerrado cuando no sea posible acceder al QR.")}>
           <HelpCircle size={20} /> Ayuda
         </button>
       </footer>
