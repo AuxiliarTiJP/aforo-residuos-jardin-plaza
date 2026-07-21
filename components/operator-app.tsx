@@ -776,7 +776,15 @@ export function OperatorApp() {
       <section className="route-progress-card">
         <div><span>Avance del recorrido</span><strong>{completedBrands.length} / {brands.length}</strong></div>
         <div className="progress-track"><span style={{ width: `${progressPercent}%` }} /></div>
-        <button type="button" onClick={() => void refreshProgress().finally(() => setScreen("progress"))}><ListChecks size={18} /> Ver marcas</button>
+        <button
+          type="button"
+          onClick={() => {
+            setScreen("progress");
+            void refreshProgress();
+          }}
+        >
+          <ListChecks size={18} /> Ver marcas
+        </button>
       </section>
 
       <section className="scan-copy">
@@ -789,7 +797,14 @@ export function OperatorApp() {
         <QrCamera onScan={handleScan} />
       )}
 
-      <button className="closed-report-entry" type="button" onClick={() => void refreshProgress().finally(() => setScreen("closed"))}>
+      <button
+        className="closed-report-entry"
+        type="button"
+        onClick={() => {
+          setScreen("closed");
+          void refreshProgress();
+        }}
+      >
         <DoorClosed size={21} />
         <span><strong>Reportar local cerrado</strong><small>Selecciona la tienda, toma una foto y registra observaciones.</small></span>
       </button>
