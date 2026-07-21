@@ -92,3 +92,15 @@ Condiciones importantes:
 - El panel administrativo continúa requiriendo internet.
 
 La franja debajo de la cámara indica si hay conexión y cuántos registros siguen pendientes.
+
+## Versión 4.0.0 — dashboard administrativo
+
+- Dashboard exclusivo para administradores.
+- Filtros por fecha, recorrido, operario, marca, resultado, zona y piso.
+- Indicadores de cumplimiento, entregas, locales cerrados, pendientes y duración.
+- Gráficas por recorrido, operario y tendencia diaria.
+- Ranking de cierres recurrentes.
+- Tabla detallada con evidencia fotográfica y exportación CSV.
+- Caché del último dashboard consultado para mostrar estado sin conexión.
+
+Antes de publicar esta versión, ejecuta `supabase/migration-v4-dashboard.sql` después de la migración V3.

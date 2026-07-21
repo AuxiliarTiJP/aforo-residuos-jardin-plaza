@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
-import { KeyRound, LogOut, Pencil, Plus, Power, Search, ShieldCheck, Trash2, UserRound, UsersRound, X } from "lucide-react";
-import { BrandLogo } from "@/components/brand-logo";
+import { KeyRound, Pencil, Plus, Power, Search, Trash2, UserRound, X } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { createDemoUser, deleteDemoUser, getDemoUsers, updateDemoUser } from "@/lib/demo-store";
 import type { AppUser, UserRole } from "@/lib/types";
@@ -25,8 +24,8 @@ function safeDemoUsers() {
   });
 }
 
-export function AdminUsers() {
-  const { user: currentUser, logout, configured, session } = useAuth();
+export function AdminUsersPanel() {
+  const { user: currentUser, configured, session } = useAuth();
   const [users, setUsers] = useState<AppUser[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -174,19 +173,7 @@ export function AdminUsers() {
   }
 
   return (
-    <main className="admin-shell">
-      <aside className="admin-sidebar">
-        <BrandLogo compact />
-        <nav>
-          <div className="nav-item active"><UsersRound size={21} /> Trabajadores</div>
-        </nav>
-        <div className="admin-person">
-          <ShieldCheck size={20} />
-          <div><strong>{currentUser?.fullName}</strong><span>Administrador</span></div>
-        </div>
-        <button className="logout-button" onClick={() => void logout()}><LogOut size={20} /> Cerrar sesión</button>
-      </aside>
-
+    <>
       <section className="admin-content">
         <header className="admin-topbar">
           <div>
@@ -261,6 +248,6 @@ export function AdminUsers() {
           </section>
         </div>
       ) : null}
-    </main>
+    </>
   );
 }

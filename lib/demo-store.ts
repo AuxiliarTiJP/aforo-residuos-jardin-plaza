@@ -28,9 +28,9 @@ const seedUsers: DemoUser[] = [
 ];
 
 export const demoBrands: Brand[] = [
-  { id: "brand-1", qrCode: "JP-001", name: "Adidas", local: "214", active: true },
-  { id: "brand-2", qrCode: "JP-002", name: "Arturo Calle", local: "118", active: true },
-  { id: "brand-3", qrCode: "JP-003", name: "Studio F", local: "305", active: true },
+  { id: "brand-1", qrCode: "JP-001", name: "Adidas", local: "214", active: true, zone: "Zona 1", floor: "Piso 2", routeOrder: 1 },
+  { id: "brand-2", qrCode: "JP-002", name: "Arturo Calle", local: "118", active: true, zone: "Zona 1", floor: "Piso 1", routeOrder: 2 },
+  { id: "brand-3", qrCode: "JP-003", name: "Studio F", local: "305", active: true, zone: "Zona 2", floor: "Piso 3", routeOrder: 3 },
 ];
 
 function browserOnly() {
@@ -140,9 +140,8 @@ export function saveDemoVisit(visit: VisitRecord) {
   const duplicate = visits.some(
     (item) =>
       item.brandId === visit.brandId &&
-      item.visitDate === visit.visitDate &&
-      item.shift === visit.shift,
+      item.routeId === visit.routeId,
   );
-  if (duplicate) throw new Error("Esta marca ya fue registrada en este recorrido");
+  if (duplicate) throw new Error("Esta marca ya fue registrada en el recorrido actual");
   window.localStorage.setItem(VISITS_KEY, JSON.stringify([visit, ...visits]));
 }

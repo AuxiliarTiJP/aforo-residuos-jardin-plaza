@@ -1,7 +1,7 @@
-import type { Brand, VisitRecord } from "@/lib/types";
+import type { Brand, RouteProgressItem, VisitRecord } from "@/lib/types";
 
 const DB_NAME = "jp-aforo-residuos";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const BRAND_STORE = "brands";
 const VISIT_STORE = "visits";
 const META_STORE = "meta";
@@ -9,13 +9,14 @@ const META_STORE = "meta";
 export type LocalVisitStatus = "pending" | "synced" | "conflict";
 
 export type LocalVisit = VisitRecord & {
-  dedupeKey: string;
+  routeBrandKey: string;
   status: LocalVisitStatus;
   attempts: number;
   lastError?: string | null;
   queuedAt: string;
   updatedAt: string;
   syncedAt?: string | null;
+  photoBlob?: Blob | null;
 };
 
 type MetaRecord = {
@@ -27,7 +28,7 @@ function storageErrorMessage(error: unknown): string {
   const name = error instanceof DOMException ? error.name : "";
 
   if (name === "ConstraintError") {
-    return "Esta marca ya fue registrada en esta jornada";
+    return "Esta marca ya fue registrada en el recorrido actual";
   }
 
   if (name === "QuotaExceededError") {
@@ -57,12 +58,17 @@ function ensureStoreIndexes(database: IDBDatabase, transaction: IDBTransaction) 
   } else {
     visits = transaction.objectStore(VISIT_STORE);
   }
+
+  if (visits.indexNames.contains("dedupeKey")) visits.deleteIndex("dedupeKey");
   if (!visits.indexNames.contains("status")) visits.createIndex("status", "status", { unique: false });
   if (!visits.indexNames.contains("operatorId")) {
     visits.createIndex("operatorId", "operatorId", { unique: false });
   }
-  if (!visits.indexNames.contains("dedupeKey")) {
-    visits.createIndex("dedupeKey", "dedupeKey", { unique: true });
+  if (!visits.indexNames.contains("routeId")) {
+    visits.createIndex("routeId", "routeId", { unique: false });
+  }
+  if (!visits.indexNames.contains("routeBrandKey")) {
+    visits.createIndex("routeBrandKey", "routeBrandKey", { unique: true });
   }
 
   if (!database.objectStoreNames.contains(META_STORE)) {
@@ -94,8 +100,6 @@ function transactionDone(transaction: IDBTransaction): Promise<void> {
   return new Promise((resolve, reject) => {
     transaction.oncomplete = () => resolve();
     transaction.onabort = () => reject(new Error(storageErrorMessage(transaction.error)));
-    // Los errores de solicitudes se capturan en requestResult. El evento error de la
-    // transacción se deja continuar hasta onabort para conservar la causa real.
     transaction.onerror = () => undefined;
   });
 }
@@ -107,8 +111,8 @@ function requestResult<T>(request: IDBRequest<T>): Promise<T> {
   });
 }
 
-export function visitDedupeKey(visit: Pick<VisitRecord, "brandId" | "visitDate" | "shift">) {
-  return `${visit.brandId}:${visit.visitDate}:${visit.shift}`;
+export function routeBrandKey(visit: Pick<VisitRecord, "routeId" | "brandId">) {
+  return `${visit.routeId}:${visit.brandId}`;
 }
 
 export async function cacheBrands(brands: Brand[]): Promise<void> {
@@ -138,6 +142,17 @@ export async function getCachedBrand(qrCode: string): Promise<Brand | null> {
   }
 }
 
+export async function getCachedBrands(): Promise<Brand[]> {
+  const database = await openDatabase();
+  try {
+    const transaction = database.transaction(BRAND_STORE, "readonly");
+    const values = (await requestResult(transaction.objectStore(BRAND_STORE).getAll())) as Brand[];
+    return values.filter((brand) => brand.active).sort((a, b) => a.name.localeCompare(b.name));
+  } finally {
+    database.close();
+  }
+}
+
 export async function setMeta(key: string, value: string): Promise<void> {
   const database = await openDatabase();
   try {
@@ -155,42 +170,47 @@ export async function getMeta(key: string): Promise<string | null> {
   try {
     const transaction = database.transaction(META_STORE, "readonly");
     const value = (await requestResult(transaction.objectStore(META_STORE).get(key))) as MetaRecord | undefined;
-    return value?.value ?? null;
+    return value?.value || null;
   } finally {
     database.close();
   }
 }
 
-async function getLocalVisitByDedupeKey(dedupeKey: string): Promise<LocalVisit | null> {
+async function getLocalVisitByRouteBrandKey(key: string): Promise<LocalVisit | null> {
   const database = await openDatabase();
   try {
     const transaction = database.transaction(VISIT_STORE, "readonly");
     const store = transaction.objectStore(VISIT_STORE);
-    const value = (await requestResult(store.index("dedupeKey").get(dedupeKey))) as LocalVisit | undefined;
+    const value = (await requestResult(store.index("routeBrandKey").get(key))) as LocalVisit | undefined;
     return value ?? null;
   } finally {
     database.close();
   }
 }
 
-export async function queueVisit(visit: VisitRecord): Promise<LocalVisit> {
-  const dedupeKey = visitDedupeKey(visit);
-  const existing = await getLocalVisitByDedupeKey(dedupeKey);
+export async function queueVisit(visit: VisitRecord, photoBlob?: Blob | null): Promise<LocalVisit> {
+  const key = routeBrandKey(visit);
+  const existing = await getLocalVisitByRouteBrandKey(key);
 
   if (existing) {
-    throw new Error("Esta marca ya fue registrada en esta jornada");
+    throw new Error("Esta marca ya fue registrada en el recorrido actual");
+  }
+
+  if (visit.result === "closed" && !photoBlob) {
+    throw new Error("La fotografía es obligatoria para reportar un local cerrado");
   }
 
   const now = new Date().toISOString();
   const localVisit: LocalVisit = {
     ...visit,
-    dedupeKey,
+    routeBrandKey: key,
     status: "pending",
     attempts: 0,
     lastError: null,
     queuedAt: now,
     updatedAt: now,
     syncedAt: null,
+    photoBlob: photoBlob ?? null,
   };
 
   const database = await openDatabase();
@@ -222,6 +242,26 @@ export async function getPendingVisits(operatorId?: string): Promise<LocalVisit[
   }
 }
 
+export async function getVisitsForRoute(routeId: string): Promise<LocalVisit[]> {
+  const database = await openDatabase();
+  try {
+    const transaction = database.transaction(VISIT_STORE, "readonly");
+    const records = (await requestResult(
+      transaction.objectStore(VISIT_STORE).index("routeId").getAll(routeId),
+    )) as LocalVisit[];
+    return records;
+  } finally {
+    database.close();
+  }
+}
+
+export async function getLocalRouteProgress(routeId: string): Promise<RouteProgressItem[]> {
+  const visits = await getVisitsForRoute(routeId);
+  return visits
+    .filter((visit) => visit.status !== "conflict")
+    .map((visit) => ({ brandId: visit.brandId, result: visit.result }));
+}
+
 export async function getPendingVisitCount(operatorId?: string): Promise<number> {
   const records = await getPendingVisits(operatorId);
   return records.length;
@@ -229,7 +269,9 @@ export async function getPendingVisitCount(operatorId?: string): Promise<number>
 
 export async function updateLocalVisit(
   id: string,
-  patch: Partial<Pick<LocalVisit, "status" | "attempts" | "lastError" | "updatedAt" | "syncedAt">>,
+  patch: Partial<
+    Pick<LocalVisit, "status" | "attempts" | "lastError" | "updatedAt" | "syncedAt" | "photoPath" | "photoBlob">
+  >,
 ): Promise<void> {
   const database = await openDatabase();
   try {

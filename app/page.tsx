@@ -5,7 +5,7 @@ import { LoaderCircle } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { LoginScreen } from "@/components/login-screen";
 import { OperatorApp } from "@/components/operator-app";
-import { AdminUsers } from "@/components/admin-users";
+import { AdminPortal } from "@/components/admin-portal";
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -13,7 +13,7 @@ function AppContent() {
     return <main className="loading-page"><LoaderCircle className="spinner" size={36} /><span>Cargando aplicación...</span></main>;
   }
   if (!user) return <LoginScreen />;
-  if (user.role === "admin") return <AdminUsers />;
+  if (user.role === "admin") return <AdminPortal />;
   return <OperatorApp />;
 }
 

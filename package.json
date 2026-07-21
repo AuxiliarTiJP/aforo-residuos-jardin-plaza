@@ -1,6 +1,6 @@
 {
   "name": "aforo-residuos-jardin-plaza",
-  "version": "2.1.1",
+  "version": "4.0.0",
   "private": true,
   "engines": {
     "node": "24.x"
@@ -18,7 +18,8 @@
     "lucide-react": "^0.468.0",
     "next": "16.2.10",
     "react": "19.2.7",
-    "react-dom": "19.2.7"
+    "react-dom": "19.2.7",
+    "recharts": "^3.10.0"
   },
   "devDependencies": {
     "@types/node": "^24.10.0",
